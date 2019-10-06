@@ -1,10 +1,9 @@
 import pandas as pd
 import requests
-import pandas_gbq
-from google.oauth2 import service_account
 from google.cloud import bigquery
 import datetime
 import sys
+import argparse
 
 
 
@@ -37,12 +36,12 @@ def load_to_bigquery(data, dataset_, table_,key ):
 
         dataset = client.create_dataset(dataset, exists_ok=True)
         table_ref = dataset_ref.table(table_)
-        client.load_table_from_dataframe(data, table_ref)
+        result = client.load_table_from_dataframe(data, table_ref).result()
     except FileNotFoundError:
         print('file '+key+' not found')
-    except:
-        print('Невозможно найти или создать dataset или table с таким названием.')
-
+    except Exception as ex:
+        print('error')
+        print(ex)
 
 def main(key, dataset, table):
     url = r'https://api.weather.yandex.ru/v1/forecast?lat=55.75396&lon=37.620393'
@@ -55,16 +54,15 @@ def main(key, dataset, table):
     else:
         return
 
+def createParser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dataset', default='weather_dataset')
+    parser.add_argument('-t', '--table', default='weather_table')
+    parser.add_argument('-k', '--key', default='key.json')
+
+    return parser
 
 if __name__=='__main__':
-    key_address = 'Weather for room42-a7e9f383b611.json'
-    # project_id = 'weather-for-room42'
-    dataset = 'weather'
-    table = 'weather'
-    if len(sys.argv)>=2:
-        table = sys.argv[1]
-    if len(sys.argv)>=3:
-        dataset = sys.argv[2]
-    if len(sys.argv)>=4:
-        key_address = sys.argv[3]
-    main(key_address, dataset, table)
+    parser = createParser()
+    namespace = parser.parse_args(sys.argv[1:])
+    main(namespace.key, namespace.dataset, namespace.table)
