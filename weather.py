@@ -10,6 +10,15 @@ import argparse
 
 
 def get_weather(url, params = None, headers = None):
+    '''
+
+    :param url:
+    :param params:
+    :param headers:
+    :return:
+    Function sends request to yandex weather api, gets information about temperature, wind speed,
+    pressure and humidity and returns it.
+    '''
     try:
         res = requests.get(url, params = params, headers = headers)
         res.raise_for_status()
@@ -29,11 +38,19 @@ def get_weather(url, params = None, headers = None):
         return (humidity, temp, wind_speed,  pressure)
 
 def load_to_bigquery(data, dataset_, table_,key ):
+    '''
+
+    :param data:
+    :param dataset_:
+    :param table_:
+    :param key:
+    :return:
+    Function loads data to dataset.table in project with the key.
+    '''
     try:
         client = bigquery.Client.from_service_account_json(key)
         dataset_ref = client.dataset(dataset_)
         dataset = bigquery.Dataset(dataset_ref)
-
         dataset = client.create_dataset(dataset, exists_ok=True)
         table_ref = dataset_ref.table(table_)
         result = client.load_table_from_dataframe(data, table_ref).result()
@@ -55,6 +72,11 @@ def main(key, dataset, table):
         return
 
 def createParser():
+    '''
+
+    :return:
+    Function parses command line to extract dataset, table and key
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', default='weather_dataset')
     parser.add_argument('-t', '--table', default='weather_table')
